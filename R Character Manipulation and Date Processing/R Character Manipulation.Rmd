@@ -1,0 +1,74 @@
+---
+title: "R Character Manipulation"
+author: "David Moste"
+date: "2/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Question 1
+
+Start by reading the csv into a data frame. Then use str_view to see all the majors that contain either DATA or STATISTICS.
+```{r}
+library(tidyverse)
+majors <- read.csv("majors.csv", stringsAsFactors = FALSE)
+str_view(majors$Major, "(DATA)|(STATISTICS)", match = TRUE)
+```
+
+You could also extract the data more explicitly without using str_view.
+```{r}
+majors$Major[str_detect(majors$Major, "(DATA)|(STATISTICS)")]
+```
+
+### Question 2
+First, load the string into variable x.
+```{r}
+x <- '[1] "bell pepper"  "bilberry"     "blackberry"   "blood orange"
++ 
++ [5] "blueberry"    "cantaloupe"   "chili pepper" "cloudberry"  
++ 
++ [9] "elderberry"   "lime"         "lychee"       "mulberry"    
++ 
++ [13] "olive"        "salal berry"'
+```
+
+Next, split the string on quotations since each fruit ends and begins with quotes.
+```{r}
+y <- str_split(x, '"')
+```
+
+Finally, take every other element in the resulting list and add it to the new list z.
+```{r}
+z <- y[[1]][c(FALSE, TRUE)]
+
+# Examples
+z[1]
+z[7]
+z[12]
+```
+
+### Question 3
+1. Since it isn't in quotes, this won't match anything.  
+2. This will match any expression such as "anna" where the second two characters are the reverse of the first two characters.  
+3. Since it isn't in quotes, this won't match anything.  
+4. This will match any expression where a letter is repeated every other character, such as "abaca"  
+5. This will match an expression such as "abccba" where there could be any character of length greater than or equal to 0 between the c's.  
+
+### Question 4
+1. Start and end with the same character.
+```{r}
+str_view("anna","^(.).{0,}\\1$")
+```
+
+2. Contain a repeated pair of letters (e.g. "church" contains "ch" repeated twice.)
+```{r}
+str_view("church","(..).{0,}\\1")
+```
+
+3. Contain one letter repeated in at least three places (e.g. "eleven" contains three "e"s.)
+```{r}
+str_view("eleven", "(.).{0,}\\1.{0,}\\1")
+```
