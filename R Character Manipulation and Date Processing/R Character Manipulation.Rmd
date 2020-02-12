@@ -51,9 +51,9 @@ z[12]
 ```
 
 ### Question 3
-1. Since it isn't in quotes, this won't match anything.  
+1. Assuming we put this in quotes, it will match any letter followed by \1\1, such as "a\1\1". 
 2. This will match any expression such as "anna" where the second two characters are the reverse of the first two characters.  
-3. Since it isn't in quotes, this won't match anything.  
+3. Assuming we put this in quotes, it will match any two letters followed by \1, such as "ab\1".   
 4. This will match any expression where a letter is repeated every other character, such as "abaca"  
 5. This will match an expression such as "abccba" where there could be any character of length greater than or equal to 0 between the c's.  
 

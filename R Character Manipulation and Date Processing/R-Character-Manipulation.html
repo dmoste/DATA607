@@ -1316,8 +1316,8 @@ summary {
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>majors &lt;- read.csv(&quot;majors.csv&quot;, stringsAsFactors = FALSE)
 str_view(majors$Major, &quot;(DATA)|(STATISTICS)&quot;, match = TRUE)</code></pre>
-<div id="htmlwidget-008afd3aa0b18a5f59ca" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-008afd3aa0b18a5f59ca">{"x":{"html":"<ul>\n  <li>MANAGEMENT INFORMATION SYSTEMS AND <span class='match'>STATISTICS<\/span><\/li>\n  <li>COMPUTER PROGRAMMING AND <span class='match'>DATA<\/span> PROCESSING<\/li>\n  <li><span class='match'>STATISTICS<\/span> AND DECISION SCIENCE<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-b94ceed018fc5f2c38b3" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b94ceed018fc5f2c38b3">{"x":{"html":"<ul>\n  <li>MANAGEMENT INFORMATION SYSTEMS AND <span class='match'>STATISTICS<\/span><\/li>\n  <li>COMPUTER PROGRAMMING AND <span class='match'>DATA<\/span> PROCESSING<\/li>\n  <li><span class='match'>STATISTICS<\/span> AND DECISION SCIENCE<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <p>You could also extract the data more explicitly without using str_view.</p>
 <pre class="r"><code>majors$Major[str_detect(majors$Major, &quot;(DATA)|(STATISTICS)&quot;)]</code></pre>
 <pre><code>## [1] &quot;MANAGEMENT INFORMATION SYSTEMS AND STATISTICS&quot;
@@ -1350,11 +1350,10 @@ z[1]</code></pre>
 <div id="question-3" class="section level3">
 <h3>Question 3</h3>
 <ol style="list-style-type: decimal">
-<li>Since it isn’t in quotes, this won’t match anything.<br />
-</li>
+<li>Assuming we put this in quotes, it will match any letter followed by \1\1, such as “a\1\1”.</li>
 <li>This will match any expression such as “anna” where the second two characters are the reverse of the first two characters.<br />
 </li>
-<li>Since it isn’t in quotes, this won’t match anything.<br />
+<li>Assuming we put this in quotes, it will match any two letters followed by \1, such as “ab\1”.<br />
 </li>
 <li>This will match any expression where a letter is repeated every other character, such as “abaca”<br />
 </li>
@@ -1367,20 +1366,20 @@ z[1]</code></pre>
 <li>Start and end with the same character.</li>
 </ol>
 <pre class="r"><code>str_view(&quot;anna&quot;,&quot;^(.).{0,}\\1$&quot;)</code></pre>
-<div id="htmlwidget-933d5b49b76c1f193126" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-933d5b49b76c1f193126">{"x":{"html":"<ul>\n  <li><span class='match'>anna<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-411736365a89b53c8a00" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-411736365a89b53c8a00">{"x":{"html":"<ul>\n  <li><span class='match'>anna<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <ol start="2" style="list-style-type: decimal">
 <li>Contain a repeated pair of letters (e.g. “church” contains “ch” repeated twice.)</li>
 </ol>
 <pre class="r"><code>str_view(&quot;church&quot;,&quot;(..).{0,}\\1&quot;)</code></pre>
-<div id="htmlwidget-30f591d8c0494a25b6c8" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-30f591d8c0494a25b6c8">{"x":{"html":"<ul>\n  <li><span class='match'>church<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-c754a61cbee9ca31abb4" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-c754a61cbee9ca31abb4">{"x":{"html":"<ul>\n  <li><span class='match'>church<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <ol start="3" style="list-style-type: decimal">
 <li>Contain one letter repeated in at least three places (e.g. “eleven” contains three “e”s.)</li>
 </ol>
 <pre class="r"><code>str_view(&quot;eleven&quot;, &quot;(.).{0,}\\1.{0,}\\1&quot;)</code></pre>
-<div id="htmlwidget-9ac1fa8fb9a5a74b8574" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9ac1fa8fb9a5a74b8574">{"x":{"html":"<ul>\n  <li><span class='match'>eleve<\/span>n<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-21f9cfbd33dd59a43289" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-21f9cfbd33dd59a43289">{"x":{"html":"<ul>\n  <li><span class='match'>eleve<\/span>n<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 </div>
 
 
