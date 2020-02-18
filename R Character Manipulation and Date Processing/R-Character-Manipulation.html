@@ -1316,8 +1316,8 @@ summary {
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>majors &lt;- read.csv(&quot;majors.csv&quot;, stringsAsFactors = FALSE)
 str_view(majors$Major, &quot;(DATA)|(STATISTICS)&quot;, match = TRUE)</code></pre>
-<div id="htmlwidget-9cc1add89477e021a283" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9cc1add89477e021a283">{"x":{"html":"<ul>\n  <li>MANAGEMENT INFORMATION SYSTEMS AND <span class='match'>STATISTICS<\/span><\/li>\n  <li>COMPUTER PROGRAMMING AND <span class='match'>DATA<\/span> PROCESSING<\/li>\n  <li><span class='match'>STATISTICS<\/span> AND DECISION SCIENCE<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-9ed2932719acefd54bfc" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9ed2932719acefd54bfc">{"x":{"html":"<ul>\n  <li>MANAGEMENT INFORMATION SYSTEMS AND <span class='match'>STATISTICS<\/span><\/li>\n  <li>COMPUTER PROGRAMMING AND <span class='match'>DATA<\/span> PROCESSING<\/li>\n  <li><span class='match'>STATISTICS<\/span> AND DECISION SCIENCE<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <p>You could also extract the data more explicitly without using str_view.</p>
 <pre class="r"><code>majors$Major[str_detect(majors$Major, &quot;(DATA)|(STATISTICS)&quot;)]</code></pre>
 <pre><code>## [1] &quot;MANAGEMENT INFORMATION SYSTEMS AND STATISTICS&quot;
@@ -1365,21 +1365,21 @@ z[1]</code></pre>
 <ol style="list-style-type: decimal">
 <li>Start and end with the same character.</li>
 </ol>
-<pre class="r"><code>str_view(&quot;anna&quot;,&quot;^(.).{0,}\\1$&quot;)</code></pre>
-<div id="htmlwidget-4d31772546fbd0e1f881" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-4d31772546fbd0e1f881">{"x":{"html":"<ul>\n  <li><span class='match'>anna<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code>str_view_all(&quot;anna&quot;,&quot;^(.).*\\1$&quot;)</code></pre>
+<div id="htmlwidget-f5f10f9b079b3b1a9dbf" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f5f10f9b079b3b1a9dbf">{"x":{"html":"<ul>\n  <li><span class='match'>anna<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <ol start="2" style="list-style-type: decimal">
 <li>Contain a repeated pair of letters (e.g. “church” contains “ch” repeated twice.)</li>
 </ol>
-<pre class="r"><code>str_view(&quot;church&quot;,&quot;(..).{0,}\\1&quot;)</code></pre>
-<div id="htmlwidget-9213f70967a19bc78203" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9213f70967a19bc78203">{"x":{"html":"<ul>\n  <li><span class='match'>church<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code>str_view_all(&quot;church&quot;,&quot;(..)[^ ]*\\1&quot;)</code></pre>
+<div id="htmlwidget-39821d0a4831b639e8fe" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-39821d0a4831b639e8fe">{"x":{"html":"<ul>\n  <li><span class='match'>church<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <ol start="3" style="list-style-type: decimal">
 <li>Contain one letter repeated in at least three places (e.g. “eleven” contains three “e”s.)</li>
 </ol>
-<pre class="r"><code>str_view(&quot;eleven&quot;, &quot;(.).{0,}\\1.{0,}\\1&quot;)</code></pre>
-<div id="htmlwidget-47c8fede1c37ef8ea747" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-47c8fede1c37ef8ea747">{"x":{"html":"<ul>\n  <li><span class='match'>eleve<\/span>n<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code>str_view_all(&quot;eleven&quot;, &quot;(.)[^ ]*\\1[^ ]*\\1&quot;)</code></pre>
+<div id="htmlwidget-9c10a34e8c8a8df88834" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9c10a34e8c8a8df88834">{"x":{"html":"<ul>\n  <li><span class='match'>eleve<\/span>n<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 </div>
 
 
