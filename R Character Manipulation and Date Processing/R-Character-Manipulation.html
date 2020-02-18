@@ -1306,18 +1306,18 @@ summary {
 <h3>Question 1</h3>
 <p>Start by reading the csv into a data frame. Then use str_view to see all the majors that contain either DATA or STATISTICS.</p>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## -- Attaching packages -------------------------------------------------------- tidyverse 1.3.0 --</code></pre>
+<pre><code>## -- Attaching packages ------------------------------------------------ tidyverse 1.3.0 --</code></pre>
 <pre><code>## v ggplot2 3.2.1     v purrr   0.3.3
 ## v tibble  2.1.3     v dplyr   0.8.3
 ## v tidyr   1.0.0     v stringr 1.4.0
 ## v readr   1.3.1     v forcats 0.4.0</code></pre>
-<pre><code>## -- Conflicts ----------------------------------------------------------- tidyverse_conflicts() --
+<pre><code>## -- Conflicts --------------------------------------------------- tidyverse_conflicts() --
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>majors &lt;- read.csv(&quot;majors.csv&quot;, stringsAsFactors = FALSE)
 str_view(majors$Major, &quot;(DATA)|(STATISTICS)&quot;, match = TRUE)</code></pre>
-<div id="htmlwidget-b94ceed018fc5f2c38b3" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b94ceed018fc5f2c38b3">{"x":{"html":"<ul>\n  <li>MANAGEMENT INFORMATION SYSTEMS AND <span class='match'>STATISTICS<\/span><\/li>\n  <li>COMPUTER PROGRAMMING AND <span class='match'>DATA<\/span> PROCESSING<\/li>\n  <li><span class='match'>STATISTICS<\/span> AND DECISION SCIENCE<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-9cc1add89477e021a283" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9cc1add89477e021a283">{"x":{"html":"<ul>\n  <li>MANAGEMENT INFORMATION SYSTEMS AND <span class='match'>STATISTICS<\/span><\/li>\n  <li>COMPUTER PROGRAMMING AND <span class='match'>DATA<\/span> PROCESSING<\/li>\n  <li><span class='match'>STATISTICS<\/span> AND DECISION SCIENCE<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <p>You could also extract the data more explicitly without using str_view.</p>
 <pre class="r"><code>majors$Major[str_detect(majors$Major, &quot;(DATA)|(STATISTICS)&quot;)]</code></pre>
 <pre><code>## [1] &quot;MANAGEMENT INFORMATION SYSTEMS AND STATISTICS&quot;
@@ -1350,14 +1350,14 @@ z[1]</code></pre>
 <div id="question-3" class="section level3">
 <h3>Question 3</h3>
 <ol style="list-style-type: decimal">
-<li>Assuming we put this in quotes, it will match any letter followed by \1\1, such as “a\1\1”.</li>
-<li>This will match any expression such as “anna” where the second two characters are the reverse of the first two characters.<br />
+<li>This will match any letter followed by \1\1, such as “a\1\1”.</li>
+<li>This will match any expression such as ‘“anna”’ where the second two characters are the reverse of the first two characters, wrapped in quotations.<br />
 </li>
-<li>Assuming we put this in quotes, it will match any two letters followed by \1, such as “ab\1”.<br />
+<li>This will match any two letters followed by \1, such as “ab\1”.<br />
 </li>
-<li>This will match any expression where a letter is repeated every other character, such as “abaca”<br />
+<li>This will match any expression where a letter is repeated every other character and wrapped in quotations, such as ‘“abaca”’<br />
 </li>
-<li>This will match an expression such as “abccba” where there could be any character of length greater than or equal to 0 between the c’s.</li>
+<li>This will match an expression such as ‘“abccba”’ where there could be any character of length greater than or equal to 0 between the c’s and wrapped in quotations.</li>
 </ol>
 </div>
 <div id="question-4" class="section level3">
@@ -1366,20 +1366,20 @@ z[1]</code></pre>
 <li>Start and end with the same character.</li>
 </ol>
 <pre class="r"><code>str_view(&quot;anna&quot;,&quot;^(.).{0,}\\1$&quot;)</code></pre>
-<div id="htmlwidget-411736365a89b53c8a00" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-411736365a89b53c8a00">{"x":{"html":"<ul>\n  <li><span class='match'>anna<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-4d31772546fbd0e1f881" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4d31772546fbd0e1f881">{"x":{"html":"<ul>\n  <li><span class='match'>anna<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <ol start="2" style="list-style-type: decimal">
 <li>Contain a repeated pair of letters (e.g. “church” contains “ch” repeated twice.)</li>
 </ol>
 <pre class="r"><code>str_view(&quot;church&quot;,&quot;(..).{0,}\\1&quot;)</code></pre>
-<div id="htmlwidget-c754a61cbee9ca31abb4" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-c754a61cbee9ca31abb4">{"x":{"html":"<ul>\n  <li><span class='match'>church<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-9213f70967a19bc78203" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9213f70967a19bc78203">{"x":{"html":"<ul>\n  <li><span class='match'>church<\/span><\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 <ol start="3" style="list-style-type: decimal">
 <li>Contain one letter repeated in at least three places (e.g. “eleven” contains three “e”s.)</li>
 </ol>
 <pre class="r"><code>str_view(&quot;eleven&quot;, &quot;(.).{0,}\\1.{0,}\\1&quot;)</code></pre>
-<div id="htmlwidget-21f9cfbd33dd59a43289" style="width:960px;height:100%;" class="str_view html-widget"></div>
-<script type="application/json" data-for="htmlwidget-21f9cfbd33dd59a43289">{"x":{"html":"<ul>\n  <li><span class='match'>eleve<\/span>n<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-47c8fede1c37ef8ea747" style="width:960px;height:100%;" class="str_view html-widget"></div>
+<script type="application/json" data-for="htmlwidget-47c8fede1c37ef8ea747">{"x":{"html":"<ul>\n  <li><span class='match'>eleve<\/span>n<\/li>\n<\/ul>"},"evals":[],"jsHooks":[]}</script>
 </div>
 
 
