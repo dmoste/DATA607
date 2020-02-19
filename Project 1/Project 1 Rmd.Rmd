@@ -1,0 +1,69 @@
+---
+title: "Project 1"
+author: "David Moste"
+date: "2/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+For this project, I was asked to import a text file containing data from a chess tournament into R ands output a csv file with columns for the player names, states, total points, pre tournament ranking, and average ranking of their opponents.
+
+### Code
+I started by importing the text file and breaking up the data into two data frames based on player information.
+```{r}
+library(tidyverse)
+
+txt_data_frame <- read.delim("tournamentinfo.txt", stringsAsFactors = FALSE)
+
+players_1 <- txt_data_frame[,1][c(str_detect(txt_data_frame[,1],"^ {3,4}\\d"))]
+players_2 <- txt_data_frame[,1][c(str_detect(txt_data_frame[,1],"^ {3}[^ \\d]"))]
+```
+
+Next, I extracted some of the easier information, such as player number, player name, total points, state, and pre-ranking.
+```{r}
+player_numbers <- as.numeric(str_extract(players_1, ".\\d "))
+player_names <- str_trim(str_sub(str_extract(players_1, "\\|.{32}"),3))
+total_points <- as.numeric(str_extract(players_1, "\\d\\.\\d"))
+
+state <- str_sub(str_extract(players_2, ".. \\|"),1,2)
+pre_ranking <- str_trim(str_sub(str_extract(players_2, "(R: ....P..)|(R: ....)"),4))
+pre_ranking <- str_replace(pre_ranking,"P","\\.")
+pre_ranking <- as.numeric(pre_ranking)
+```
+
+Next, I extracted the match data and converted player number to a pre-ranking. Then a I found the average pre-ranking of the opponents for each player using rowMeans.
+```{r}
+matches <- data.frame(str_extract_all(players_1,"[WLDHXBU]  .{2}\\|"))
+matches <- data.frame(t(matches))
+names(matches) <- c("m1","m2","m3","m4","m5","m6","m7")
+
+m1 <- pre_ranking[as.numeric(str_trim(str_sub(matches$m1,2,-2)))]
+m2 <- pre_ranking[as.numeric(str_trim(str_sub(matches$m2,2,-2)))]
+m3 <- pre_ranking[as.numeric(str_trim(str_sub(matches$m3,2,-2)))]
+m4 <- pre_ranking[as.numeric(str_trim(str_sub(matches$m4,2,-2)))]
+m5 <- pre_ranking[as.numeric(str_trim(str_sub(matches$m5,2,-2)))]
+m6 <- pre_ranking[as.numeric(str_trim(str_sub(matches$m6,2,-2)))]
+m7 <- pre_ranking[as.numeric(str_trim(str_sub(matches$m7,2,-2)))]
+
+matches <- data.frame(m1,m2,m3,m4,m5,m6,m7)
+opposition <- c(rowMeans(matches[1:7], na.rm = TRUE))
+opposition <- round(opposition, digits = 0)
+```
+
+Finally, I added all this data to a data frame, created a scatter plot of pre-ranking vs total points (for fun) and wrote the data frame to a csv file.
+```{r}
+chess <- data.frame(player_names, state, total_points, pre_ranking, opposition)
+
+ggplot(chess, aes(pre_ranking, total_points)) +
+  geom_point(aes(color = opposition)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Pre-ranking",
+       y = "Total Points (post-tournament)",
+       color = "Opposition\nRanking")
+
+write.csv(chess, "chess.csv")
+```
