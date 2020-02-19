@@ -60,7 +60,6 @@ chess <- data.frame(player_names, state, total_points, pre_ranking, opposition)
 
 ggplot(chess, aes(pre_ranking, total_points)) +
   geom_point(aes(color = opposition)) +
-  geom_smooth(method = "lm", se = FALSE) +
   labs(x = "Pre-ranking",
        y = "Total Points (post-tournament)",
        color = "Opposition\nRanking")
