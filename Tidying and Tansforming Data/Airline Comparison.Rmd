@@ -45,7 +45,7 @@ ggplot(airlines, aes(x = airline, y = Totals, fill = result)) +
        subtitle = "AM West has a better overall on-time rate")
 ```
 
-My next step was to tidy the data using pivot_longer to move the flight destinations to a new column called destination. I then ussed this new data frame to create two more data frames, totalFlights and onTimeFlights. I created these data frames by grouping the data by airline and destination. I then used summarise to get the total flights for each airline for each destination. I created onTimeFlights by filtering based on result and then selecting everything except the result column.
+My next step was to tidy the data using pivot_longer to move the flight destinations to a new column called destination. I then ussed this new data frame to create two more data frames, totalFlights and onTimeFlights. I created these data frames by grouping the data by airline and destination. I then used summarise to get the total flights for each airline for each destination. I created onTimeFlights by mutating to get the on time rate for each airline and destination pairing and then filtering based on result and then selecting everything except the result and total columns.
 ```{r}
 # use pivot_longer to switch destinations from columns to rows
 airlines <- airlines %>%
@@ -66,13 +66,13 @@ totalFlights <- airlines %>%
 
 # filter based result (keep onTime values)
 onTimeFlights <- airlines %>%
+  mutate(total = sum(count)) %>%
+  mutate(rate = round(count/total, digits = 2)) %>%
   filter(result == "onTime") %>%
-  select(-result)
-
-onTimeFlights$rate <- onTimeFlights$count/totalFlights$count
+  select(-result, -total)
 ```
 
-Finally, I created some plots using these new data frames to compare the airlines based on destination airports.
+Finally, I created some plots using these new data frames to compare the airlines based on destination airports. I started by ceating a scatter plot and bar graph to compare on-time rates at each airport. This made it clear that ALASKA airlines had a better on-time performance for each destination. I then decided to compare the total number of flights by each airline to each destination. This is where it became clear that AM WEST had a superior on-time performance because they sent a drasticlly high number of flights to the airport with the best on-time rate, Phoenix.
 ```{r}
 # create plots to compare the airlines performace based on destination
 ggplot(onTimeFlights, aes(x = destination, y = rate, color = airline)) +
@@ -108,4 +108,6 @@ ggplot(totalFlights, aes(x = reorder(destination, count), y = count, fill = airl
 ```
 
 ### Conclusion
-When I first compared the two airlines, AM West was shown to have a better on time rate than Alaska. However, when the data is broken down by destination airport, Alaska has a better on time rate for each individual destination. When you compare total flights to each destination, it becomes clear that the reason AM West has a better overall on time rate is due to the massive number of flights it sends to Phoenix and its high on time rate to that destination. In conclusion, while AM West has the higher overall on time rate, I would choose Alaska airlines since they still have a better on time rate at each airport (potentially unless I was headed to phoenix and I needed to have flexible times).
+When I first compared the two airlines, AM West was shown to have a better on-time rate than Alaska. However, when the data is broken down by destination airport, Alaska has a better on time rate for each individual destination.  
+
+I was curious as to how this could be so. I decided to compare total flights to each destination. IT became clear that the reason AM West has a better overall on-time rate is due to the massive number of flights it sends to Phoenix (which seems to be a good airport since ALASKA also has its highest on-time rate there). In conclusion, while AM West has the higher overall on-time rate, I would choose Alaska airlines since they still have a better on-time rate at each airport (potentially unless I was headed to Phoenix and I needed to have flexible times).

@@ -41,11 +41,10 @@ totalFlights <- airlines %>%
 
 # filter based result (keep onTime values)
 onTimeFlights <- airlines %>%
+  mutate(total = sum(count)) %>%
+  mutate(rate = round(count/total, digits = 2)) %>%
   filter(result == "onTime") %>%
-  select(-result)
-
-onTimeFlights$rate <- onTimeFlights$count/totalFlights$count
-totalFlights$rate <- onTimeFlights$rate
+  select(-result, -total)
 
 # create plots to compare the airlines performace based on destination
 ggplot(onTimeFlights, aes(x = destination, y = rate, color = airline)) +
@@ -76,5 +75,18 @@ ggplot(totalFlights, aes(x = reorder(destination, count), y = count, fill = airl
   scale_fill_brewer(palette = "Dark2") +
   labs(x = "Destination",
        y = "Total Flights",
+       fill = "Airline") +
+  coord_flip()
+
+### testing zone
+united <- airlines %>%
+  unite(line_dest, destination, airline) %>%
+  group_by(line_dest)
+  
+ggplot(united, aes(x = line_dest, y = count, fill = result)) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(x = "Destination",
+       y = "On Time",
        fill = "Airline") +
   coord_flip()
