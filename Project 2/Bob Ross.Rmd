@@ -1,0 +1,59 @@
+---
+title: "Bob Ross"
+author: "David Moste"
+date: "3/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+I used the Bob Ross dataset for this tidying project.
+
+### Code
+I started by loading the required libraries and the dataset.
+```{r}
+# load required libraries
+library(tidyverse)
+
+# load the bob ross csv
+br <- read.csv("bob_ross.csv", header = TRUE)
+```
+
+Next, I tidied the data using pivot_longer, filter, and separate.
+```{r}
+# tidy the bob ross csv (pivot_longer, filter, separate, select, group_by, mutate)
+br <- br %>%
+  pivot_longer(c("APPLE_FRAME":"WOOD_FRAMED"),
+               names_to = "element",
+               values_to = "present") %>%
+  filter(present == 1) %>%
+  separate("EPISODE", into = c("season", "episode"), sep = "E") %>%
+  separate("season", into = c("S", "season"), sep = "S") %>%
+  select(-S)
+
+br$season <- as.integer(br$season)
+br$episode <- as.integer(br$episode)
+```
+
+Finally, I created a new dataframe with based on the most common elements in the dataset and graphed this.
+```{r}
+# create a data frame containing only one instance of each object
+most_common <- br %>%
+  group_by(element) %>%
+  mutate("total" = sum(present)) %>%
+  distinct(element, total) %>%
+  filter(total > 50)
+
+# plot the most popular elements
+ggplot(most_common, aes(x = reorder(element, total), y = total)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Element",
+       y = "Total Appearances") +
+  coord_flip()
+```
+
+# Conclusion
+Based on my analysis,Bob Ross looked at a lot of paintings with trees. Tree and Trees were the two most common words in the dataset.

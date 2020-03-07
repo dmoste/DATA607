@@ -1,0 +1,178 @@
+---
+title: "Coronavirus"
+author: "David Moste"
+date: "3/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+I used the provided coronavirus dataset for this tidying.
+
+### Code
+
+I first loaded the required libraries and the dataset.
+```{r}
+# load required libraries
+library(tidyverse)
+library(rvest)
+library(ggplot2)
+
+# load the coronavirus csv
+cv <- read.csv("coronavirus.csv", header = TRUE, stringsAsFactors = FALSE)
+```
+
+Next, I did a little cleaning by separating the notes column and removing extraneous information. I then replaced all NAs with 0s, which can be justified since the NAs were created by there being none of that type of activity (deaths, recoveries, etc).
+```{r}
+# tidy the data by separating the notes section
+for(i in c("critical","serious","recovered")){
+  cv <- cv %>%
+  mutate(i = str_extract(notes,str_c("\\d* ", i))) %>%
+  separate(i, into = c(i, str_c("word", i)), sep = " ")
+}
+
+cv <- cv %>%
+  select(country, cases, deaths, critical, serious, recovered)
+
+# remove NAs and make them 0
+# (this is justified since they were created by a lack of accounts)
+cv[is.na(cv)] = 0
+colnames(cv)[1] <- "region"
+```
+
+I then plotted the deaths on a world map. China and Japan overwhelmed the other countries, so I removed them from the dataset to get a better picture of what areas were infected.
+```{r}
+# get world map data for coordinates, then join with my data
+world_map <- map_data("world")
+cv_map <- full_join(cv, world_map, by = "region")
+
+# plot the number of cases in each country
+ggplot(cv_map, aes(long, lat, group = group)) +
+  geom_polygon(aes(fill = cases), color = "black") +
+  scale_fill_viridis_c(option = "C")
+
+bar_cv <- cv_map %>%
+  filter(cases > 5) %>%
+  distinct(region, cases)
+ggplot(bar_cv, aes(x = reorder(region, cases), y = cases)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Region",
+       y = "Total Cases") +
+  coord_flip()
+
+# remove China and Japan from the data to show the spread in other countries
+cv_map$cases[cv_map$region == "China"] = NA
+cv_map$cases[cv_map$region == "Japan"] = NA
+
+ggplot(cv_map, aes(long, lat, group = group)) +
+  geom_polygon(aes(fill = cases), color = "black") +
+  scale_fill_viridis_c(option = "C")
+
+bar_cv <- cv_map %>%
+  filter(cases > 5) %>%
+  distinct(region, cases)
+ggplot(bar_cv, aes(x = reorder(region, cases), y = cases)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Region",
+       y = "Total Cases") +
+  coord_flip()
+```
+
+I was curious about some more up-to-date data, so I downloaded some from the internet.
+```{r}
+# get some new, more current data
+url <- "https://www.worldometers.info/coronavirus/#countries"
+new_cv <- read_html(url) %>%
+  html_nodes("table") %>%
+  html_table()
+```
+
+Then I cleaned up this data by removing commas and converting types. Then I right joined with the world map data. I used a right join to make sure I only had information that could be displayed on the world map.
+```{r}
+# clean this new data. All NAs should be 0 since they occured
+#due to there being no reported cases
+new_cv <- new_cv[[1]]
+new_cv$TotalCases <- str_remove(new_cv$TotalCases,",")
+new_cv$TotalDeaths <- str_remove(new_cv$TotalDeaths,",")
+new_cv$TotalCases <- as.integer(new_cv$TotalCases)
+new_cv$TotalDeaths <- as.integer(new_cv$TotalDeaths)
+new_cv[is.na(new_cv)] = 0
+
+# right join with world map to get rid of data points that don't have coordinates
+# create the death rate variable
+colnames(new_cv)[1] <- "region"
+new_cv <- right_join(new_cv, world_map, by = "region")
+new_cv <- new_cv %>%
+  mutate("death_rate" = round((TotalDeaths/TotalCases)*100, digits = 2))
+```
+
+Next, I plotted this new data.
+```{r}
+# plot this new data
+ggplot(new_cv, aes(long, lat, group = group)) +
+  geom_polygon(aes(fill = TotalCases), color = "black") +
+  scale_fill_viridis_c(option = "C")
+
+bar_cv <- new_cv %>%
+  filter(TotalCases > 20) %>%
+  distinct(region, TotalCases)
+ggplot(bar_cv, aes(x = reorder(region, TotalCases), y = TotalCases)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Region",
+       y = "Total Cases") +
+  coord_flip()
+```
+
+Next, I plotted death rates instead of total deaths. I had to remove the Philippines because it was an extrem outlier.
+```{r}
+# look at death rate
+rate <- new_cv %>%
+  filter(region != "Philippines")
+ggplot(rate, aes(long, lat, group = group)) +
+  geom_polygon(aes(fill = death_rate), color = "black") +
+  scale_fill_viridis_c(option = "C")
+```
+
+Finally, I removed China, then Italy and Iran to get a current picture of total deaths by country.
+```{r}
+# remove China again and plot
+new_cv$TotalCases[new_cv$region == "China"] = NA
+
+ggplot(new_cv, aes(long, lat, group = group)) +
+  geom_polygon(aes(fill = TotalCases), color = "black") +
+  scale_fill_viridis_c(option = "C")
+
+bar_cv <- new_cv %>%
+  filter(TotalCases > 20) %>%
+  distinct(region, TotalCases)
+ggplot(bar_cv, aes(x = reorder(region, TotalCases), y = TotalCases)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Region",
+       y = "Total Cases") +
+  coord_flip()
+
+# remove Italy and Iran and plot
+new_cv$TotalCases[new_cv$region == "Italy"] = NA
+new_cv$TotalCases[new_cv$region == "Iran"] = NA
+
+ggplot(new_cv, aes(long, lat, group = group)) +
+  geom_polygon(aes(fill = TotalCases), color = "black") +
+  scale_fill_viridis_c(option = "C")
+
+bar_cv <- new_cv %>%
+  filter(TotalCases > 20) %>%
+  distinct(region, TotalCases)
+ggplot(bar_cv, aes(x = reorder(region, TotalCases), y = TotalCases)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Region",
+       y = "Total Cases") +
+  coord_flip()
+```
+
+# Conclusion
+
+It was interesting to see how the virus has spread from the intial datset that was provided to the current dataset. It was interesting to note the death rates in different parts of the world as well.
