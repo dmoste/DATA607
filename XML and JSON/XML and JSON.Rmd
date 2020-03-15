@@ -1,0 +1,37 @@
+---
+title: "XML and JSON"
+author: "David Moste"
+date: "3/15/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+For this assignment, I created an html, xml, and json file containing information about three of my college physics textbooks. These files contained the book titles, authors, subject, and page counts. I then used R to read each file and create a dataframe from the information.
+
+### Code
+I read in each file using the XML, jsonlite, and rvest libraries. Then I converted them to separate dataframes.
+```{r}
+library(XML)
+library(jsonlite)
+library(rvest)
+
+html <- as.data.frame(read_html("books.html") %>% html_table())
+
+xml <- xmlParse(file = "books.xml")
+xml <- xmlRoot(xml)
+xml <- xmlToDataFrame(xml)
+
+json <- fromJSON("books.json")
+json <- json$books
+
+html
+xml
+json
+```
+
+# Conclusion
+Each of the dataframes is a little bit different than the others. The HTML dataframe lost the headers for the columns and the JSON dataframe represented the authors as a list instead of a single string (which is nice).

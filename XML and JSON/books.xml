@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE books [
+  <!ELEMENT books (book)>
+  <!ELEMENT book (title, author, subject, length)>
+  <!ELEMENT title (#PCDATA)>
+  <!ELEMENT author (#PCDATA)>
+  <!ELEMENT subject (#PCDATA)>
+  <!ELEMENT length (#PCDATA)>
+  <!ATTLIST book id CDATA #IMPLIED>
+]>
+
+<books>
+  <book id="1">
+    <title>Fundamentals of Physics</title>
+    <author>Halliday, Resnick, &amp; Walker</author>
+    <subject>Physics</subject>
+    <length>1248</length>
+  </book>
+  <book id="2">
+    <title>Classical Mechanics</title>
+    <author>John R. Taylor</author>
+    <subject>Physics</subject>
+    <length>745</length>
+  </book>
+  <book id="3">
+    <title>Introduction to Quantum Mechanics</title>
+    <author>David J. Griffiths</author>
+    <subject>Physics</subject>
+    <length>434</length>
+  </book>
+</books>
