@@ -32,7 +32,7 @@ commentCorpus <- commentCorpus %>%
 # find the most used words from the job postings
 commentCorpus <-as.matrix(TermDocumentMatrix(commentCorpus))
 commentCorpus_wordFreq <-sort(rowSums(commentCorpus), decreasing = TRUE)
-toCSV <- commentCorpus_wordFreq[1:100]
+toCSV <- commentCorpus_wordFreq[1:200]
 toCSV
 
 write.csv(toCSV,"corpus.csv")
@@ -40,4 +40,35 @@ write.csv(toCSV,"corpus.csv")
 data <- read.csv("corpus.csv")
 names(data) <- c("words", "count")
 
-ggplot(data, aes(words, count)) + geom_bar(stat = "identity")
+data <- data %>%
+  filter(count > 50) %>%
+  filter(count < 180) %>%
+  filter(words != "hiring") %>%
+  filter(words != "jobs") %>%
+  filter(words != "jobs") %>%
+  filter(words != "advice") %>%
+  filter(words != "skills") %>%
+  filter(words != "help") %>%
+  filter(words != "companies") %>%
+  filter(words != "find") %>%
+  filter(words != "salaries") %>%
+  filter(words != "events") %>%
+  filter(words != "indeed") %>%
+  filter(words != "career") %>%
+  filter(words != "employer") %>%
+  filter(words != "countries") %>%
+  filter(words != "years") %>%
+  filter(words != "ability") %>%
+  filter(words != "strong") %>%
+  filter(words != "sell") %>%
+  filter(words != "requierd") %>%
+  filter(words != "using") %>%
+  filter(words != "etc") %>%
+  filter(words != "lab")
+
+ggplot(data, aes(reorder(words, count), count)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(x = "Word",
+       y = "Count")
+
