@@ -61,7 +61,7 @@ data <- data %>%
   filter(words != "ability") %>%
   filter(words != "strong") %>%
   filter(words != "sell") %>%
-  filter(words != "requierd") %>%
+  filter(words != "required") %>%
   filter(words != "using") %>%
   filter(words != "etc") %>%
   filter(words != "lab")
