@@ -1,36 +1,38 @@
+# load required packages
 library(rvest)
 library(tidyverse)
+library(tm)
+library(SnowballC)
 
+# read in the links that R will scrape from a csv and create column names
 links <- read.csv("data_science_links.csv", header = FALSE)
 names(links) <- c("Link")
 links$Link <- as.character(links$Link)
 
-goal <- c()
+# scrape the lists from each link and add the text to a single string (textList)
+textList <- c()
 for(i in 1:length(links$Link)){
   h_text <- read_html(links[i,]) %>%
     html_nodes("li") %>%
     html_text()
-  
-  for(j in 1:length(h_text)){
-    goal <- str_c(goal, h_text[j], sep = " ")
-  }
+  textList <- rbind(textList, h_text)
 }
 
-goal <- str_extract_all(goal, boundary("word"))
-  
-big_list <- c()
-for(i in 1:length(goal)){
-  for(j in 1:length(goal[[i]])){
-    big_list <- c(big_list, tolower(goal[[i]][j]))
-  }
-}
+# create VCorpus from textList
+commentCorpus <- Corpus(VectorSource(textList))
 
-sums <- c()
-for(i in 1:length(big_list)){
-  sums <- c(sums, sum(big_list == big_list[i]))
-}
+# manipulte the corpus to remove unwanted information
+commentCorpus <- commentCorpus %>%
+  tm_map(removePunctuation) %>%
+  tm_map(removeNumbers) %>%
+  tm_map(stripWhitespace) %>%
+  tm_map(tolower)%>%
+  tm_map(removeWords, stopwords("english"))
 
-small_data <- data.frame(big_list, sums)
-small_data <- small_data[!duplicated(small_data$big_list), ] %>%
-  filter(sums <= 150) %>%
-  filter(sums >= 50)
+# find the most used words from the job postings
+commentCorpus <-as.matrix(TermDocumentMatrix(commentCorpus))
+commentCorpus_wordFreq <-sort(rowSums(commentCorpus), decreasing = TRUE)
+toCSV <- commentCorpus_wordFreq[1:100]
+toCSV
+
+write.csv(toCSV,"corpus.csv")
