@@ -36,3 +36,8 @@ toCSV <- commentCorpus_wordFreq[1:100]
 toCSV
 
 write.csv(toCSV,"corpus.csv")
+
+data <- read.csv("corpus.csv")
+names(data) <- c("words", "count")
+
+ggplot(data, aes(words, count)) + geom_bar(stat = "identity")
