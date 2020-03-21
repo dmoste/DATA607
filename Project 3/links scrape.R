@@ -32,7 +32,7 @@ commentCorpus <- commentCorpus %>%
 # find the most used words from the job postings
 commentCorpus <-as.matrix(TermDocumentMatrix(commentCorpus))
 commentCorpus_wordFreq <-sort(rowSums(commentCorpus), decreasing = TRUE)
-toCSV <- commentCorpus_wordFreq[1:200]
+toCSV <- commentCorpus_wordFreq
 toCSV
 
 write.csv(toCSV,"corpus.csv")
@@ -41,7 +41,7 @@ data <- read.csv("corpus.csv")
 names(data) <- c("words", "count")
 
 data <- data %>%
-  filter(count > 50) %>%
+  filter(count > 100) %>%
   filter(count < 180) %>%
   filter(words != "hiring") %>%
   filter(words != "jobs") %>%
@@ -64,7 +64,8 @@ data <- data %>%
   filter(words != "required") %>%
   filter(words != "using") %>%
   filter(words != "etc") %>%
-  filter(words != "lab")
+  filter(words != "lab") %>%
+  filter(words != "working")
 
 data$averages <- (data$count)/sum(data$count)
 
