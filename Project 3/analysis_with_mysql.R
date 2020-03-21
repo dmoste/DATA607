@@ -5,9 +5,12 @@ library(tidyverse)
 con <- dbConnect(RMySQL::MySQL(), dbname = 'project_3', host = 'localhost', port = 3306, user = 'root', password = keyring::key_get("project_3","root"))
 
 sql <- "SELECT * FROM indeed1"
-res <- dbGetQuery(con, sql)
+indeed1 <- dbGetQuery(con, sql)
 
-data <- res %>%
+sql <- "SELECT * FROM reddit"
+reddit <- dbGetQuery(con, sql)
+
+data <- indeed1 %>%
   filter(count > 100) %>%
   filter(token != "hiring") %>%
   filter(token != "jobs") %>%
