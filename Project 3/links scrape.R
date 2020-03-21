@@ -66,7 +66,9 @@ data <- data %>%
   filter(words != "etc") %>%
   filter(words != "lab")
 
-ggplot(data, aes(reorder(words, count), count)) +
+data$averages <- (data$count)/sum(data$count)
+
+ggplot(data, aes(reorder(words, averages), averages)) +
   geom_bar(stat = "identity") +
   coord_flip() +
   labs(x = "Word",

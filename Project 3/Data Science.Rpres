@@ -1,0 +1,68 @@
+Data Science
+========================================================
+author: David Msote
+date: 03/20/20
+autosize: true
+
+Data from Indeed
+========================================================
+
+We used a web scraper to collect data from Indeed.com on Data Science jobs.
+
+We then evaluated which words were used most often in those job postings.
+
+For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+
+- Bullet 1
+
+Slide With Code
+========================================================
+
+```{r}
+summary(cars)
+```
+
+Plot of Indeed Data
+========================================================
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(tidyverse)
+
+data <- read.csv("corpus.csv")
+names(data) <- c("words", "count")
+
+data <- data %>%
+  filter(count > 100) %>%
+  filter(count < 180) %>%
+  filter(words != "hiring") %>%
+  filter(words != "jobs") %>%
+  filter(words != "jobs") %>%
+  filter(words != "advice") %>%
+  filter(words != "skills") %>%
+  filter(words != "help") %>%
+  filter(words != "companies") %>%
+  filter(words != "find") %>%
+  filter(words != "salaries") %>%
+  filter(words != "events") %>%
+  filter(words != "indeed") %>%
+  filter(words != "career") %>%
+  filter(words != "employer") %>%
+  filter(words != "countries") %>%
+  filter(words != "years") %>%
+  filter(words != "ability") %>%
+  filter(words != "strong") %>%
+  filter(words != "sell") %>%
+  filter(words != "required") %>%
+  filter(words != "using") %>%
+  filter(words != "etc") %>%
+  filter(words != "lab")
+
+data$averages <- (data$count)/sum(data$count)
+
+ggplot(data, aes(reorder(words, averages), averages)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(x = "Word",
+       y = "Count")
+```
