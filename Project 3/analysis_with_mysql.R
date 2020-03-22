@@ -2,7 +2,9 @@ library(keyring)
 library(RMySQL)
 library(tidyverse)
 
-con <- dbConnect(RMySQL::MySQL(), dbname = 'project_3', host = 'localhost', port = 3306, user = 'root', password = keyring::key_get("project_3","root"))
+con <- dbConnect(RMySQL::MySQL(), dbname = 'project_3',
+                 host = 'localhost', port = 3306, user = 'root',
+                 password = keyring::key_get("project_3","root"))
 
 sql <- "SELECT * FROM indeed1"
 indeed1 <- dbGetQuery(con, sql)
@@ -11,69 +13,31 @@ sql <- "SELECT * FROM reddit"
 reddit <- dbGetQuery(con, sql)
 
 indeed_data <- indeed1 %>%
-  filter(count > 100) %>%
-  filter(token != "hiring") %>%
-  filter(token != "jobs") %>%
-  filter(token != "jobs") %>%
-  filter(token != "advice") %>%
-  filter(token != "skills") %>%
-  filter(token != "help") %>%
-  filter(token != "companies") %>%
-  filter(token != "find") %>%
-  filter(token != "salaries") %>%
-  filter(token != "events") %>%
-  filter(token != "indeed") %>%
-  filter(token != "career") %>%
-  filter(token != "employer") %>%
-  filter(token != "countries") %>%
-  filter(token != "years") %>%
-  filter(token != "ability") %>%
-  filter(token != "strong") %>%
-  filter(token != "sell") %>%
-  filter(token != "required") %>%
-  filter(token != "using") %>%
-  filter(token != "etc") %>%
-  filter(token != "lab") %>%
-  filter(token != "working")
+  filter(upos == "NOUN")
                
-indeed_data$averages <- (indeed_data$count)/sum(indeed_data$count)
-
-ggplot(indeed_data, aes(reorder(token, averages), averages)) +
- geom_bar(stat = "identity") +
- coord_flip() +
- labs(x = "Word",
-      y = "Count")
+indeed_data$Indeed <- (indeed_data$count)/sum(indeed_data$count)
 
 reddit_data <- reddit %>%
-  filter(count > 500) %>%
-  filter(token != "hiring") %>%
-  filter(token != "jobs") %>%
-  filter(token != "jobs") %>%
-  filter(token != "advice") %>%
-  filter(token != "skills") %>%
-  filter(token != "help") %>%
-  filter(token != "companies") %>%
-  filter(token != "find") %>%
-  filter(token != "salaries") %>%
-  filter(token != "events") %>%
-  filter(token != "indeed") %>%
-  filter(token != "career") %>%
-  filter(token != "employer") %>%
-  filter(token != "countries") %>%
-  filter(token != "years") %>%
-  filter(token != "ability") %>%
-  filter(token != "strong") %>%
-  filter(token != "sell") %>%
-  filter(token != "required") %>%
-  filter(token != "using") %>%
-  filter(token != "etc") %>%
-  filter(token != "lab") %>%
-  filter(token != "working")
+  filter(upos == "NOUN")
 
-reddit_data$averages <- (reddit_data$count)/sum(reddit_data$count)
+reddit_data$Reddit <- (reddit_data$count)/sum(reddit_data$count)
 
-ggplot(reddit_data, aes(reorder(token, averages), averages)) +
-  geom_bar(stat = "identity") +
-  coord_flip() +
+data_compare <- indeed_data %>%
+  inner_join(reddit_data, by = "token") %>%
+  filter(count.x >100) %>%
+  filter(count.y >100) %>%
+  select(-lemma.x, -lemma.y, -upos.x, -upos.y) %>%
+  pivot_longer(
+    c("Reddit", "Indeed"),
+    names_to = "Database",
+    values_to = "Count"
+  )
+
+ggplot(data_compare, aes(x = reorder(token, Count), y = Count,
+                          fill = Database)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  scale_fill_brewer(palette = "Dark2") +
   labs(x = "Word",
-       y = "Count")
+       y = "Usage",
+       fill = "Site") +
+  coord_flip()
