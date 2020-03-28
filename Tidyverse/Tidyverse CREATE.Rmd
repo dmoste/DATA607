@@ -1,0 +1,122 @@
+---
+title: "Tidyverse CREATE"
+author: "David Moste"
+date: "3/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lubridate
+Clever name aside, lubridate is a fantastic way (arguably the BEST way) to work with date and datetime objects. Lubridate allows you to easily convert strings or numbers to date-times, deal with timezones, and perform math with date-times.
+
+## Example
+Start by loading the lubridate and tidyverse libraries along with your data.
+```{r}
+# load the tidyverse and lubridate libraries
+library(tidyverse)
+library(lubridate)
+
+# load in the csv for analysis
+csv <- "time_series_covid_19_confirmed.csv"
+coronavirus_data <- data.frame(read.csv(csv, header = TRUE, stringsAsFactors = FALSE))
+```
+
+Clean your data so that it follows a tidy format.
+```{r}
+# clean the dataset; pivot to long form, separate data column,
+# create confirmed column (based on grouping), and eliminate duplicates
+coronavirus_data <- coronavirus_data %>%
+  pivot_longer(c("X1.22.20":"X3.27.20"),
+    names_to = "Date",
+    values_to = "Cases") %>%
+  separate("Date", into = c("X", "Date"), sep = "X") %>%
+  group_by(Country.Region, Date) %>%
+  mutate("Confirmed" = sum(Cases))%>%
+  distinct(Country.Region, Date, Confirmed)
+```
+
+The first great feature of lubridate is it's ability to convert strings to dates. This can be done using any combination of `ymd`.
+```{r}
+# convert Date column to a date object
+coronavirus_data$Date <- mdy(coronavirus_data$Date)
+```
+
+You can also create time intervals by using the interval function. This creates a bounded timeline with options to check for overlapping, if one interval is contained within the other, and much more!
+```{r}
+# find US time interval
+us_cases <- coronavirus_data %>%
+  filter(Country.Region == "US") %>%
+  filter(Confirmed > 0)
+
+us_start <- us_cases$Date[1]
+us_end <- us_cases$Date[length(us_cases$Date)]
+us_interval <- interval(us_start, us_end)
+```
+
+Create two more intervals.
+```{r}
+# find Italy time interval
+italy_cases <- coronavirus_data %>%
+  filter(Country.Region == "Italy") %>%
+  filter(Confirmed > 0)
+
+italy_start <- italy_cases$Date[1]
+italy_end <- italy_cases$Date[length(italy_cases$Date)]
+italy_interval <- interval(italy_start, italy_end)
+
+# find Spain time interval
+spain_cases <- coronavirus_data %>%
+  filter(Country.Region == "Spain") %>%
+  filter(Confirmed > 0)
+
+spain_start <- spain_cases$Date[1]
+spain_end <- spain_cases$Date[length(spain_cases$Date)]
+spain_interval <- interval(spain_start, spain_end)
+```
+
+You can check if any of the intervals overlap.
+```{r}
+# check interval overlaps
+int_overlaps(us_interval,italy_interval)
+int_overlaps(us_interval,spain_interval)
+int_overlaps(spain_interval,italy_interval)
+```
+
+You can also examine the length of an interval and the difference in their lengths.
+```{r}
+# examine the length of an interval
+as.duration(us_interval)
+as.period(us_interval)
+
+# what is the difference in length of the outbreak in the US vs Spain?
+dseconds(setdiff(us_interval,spain_interval))
+```
+
+Finally, you can see if an interval is contained entirely within a different interval.
+```{r}
+# check if an interval is contained within another
+spain_interval %within% us_interval
+us_interval %within% spain_interval
+```
+
+Lastly, there is a bit of math you can do with lubridate. For example, you can add exactly one month to any given date. Here, I found the last day of January, February, and March for 2020 (notice that lubridate takes into account that 2020 is a leap year).
+```{r}
+
+# find the last day of each month using lubridate math
+jan_end <- ymd("2019-12-31") %m+% months(1)
+feb_end <- ymd("2019-12-31") %m+% months(2)
+march_end <- ymd("2019-12-31") %m+% months(3)
+
+# get total cases by month
+us_by_month <- us_cases %>%
+  mutate("Month" = month(Date, label = TRUE)) %>%
+  group_by(Month) %>%
+  filter(Date == jan_end | Date == feb_end | Date == march_end | Date == us_end)
+```
+
+# Conclusion
+Lubridate is an extremely powerful resource for dealing with dates and times. Beyond what was shown here, the user is able to deal with times, timezones, daylight savings time, and much more.
+
