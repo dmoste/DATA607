@@ -1,0 +1,331 @@
+---
+title: "Sentiment Analysis"
+author: "David Moste"
+date: "3/31/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+For this assignment, I am tasked with getting an example from *Text Mining with R* running and then extending the example to a new corpus and a neew sentiment lexicon. Sections 1-6 are directly from *Text Mining with R*^1^. Section 7 is my extension.
+
+## 1. Sentiments Dataset
+```{r}
+library(tidytext)
+
+get_sentiments("afinn")
+get_sentiments("bing")
+get_sentiments("nrc")
+```
+
+## 2. Sentiment Analysis with Inner Join
+```{r}
+library(janeaustenr)
+library(dplyr)
+library(stringr)
+
+tidy_books <- austen_books() %>%
+  group_by(book) %>%
+  mutate(linenumber = row_number(),
+         chapter = cumsum(str_detect(text, regex("^chapter [\\divxlc]", 
+                                                 ignore_case = TRUE)))) %>%
+  ungroup() %>%
+  unnest_tokens(word, text)
+
+nrc_joy <- get_sentiments("nrc") %>% 
+  filter(sentiment == "joy")
+
+tidy_books %>%
+  filter(book == "Emma") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+
+library(tidyr)
+
+jane_austen_sentiment <- tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(book, index = linenumber %/% 80, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+library(ggplot2)
+
+ggplot(jane_austen_sentiment, aes(index, sentiment, fill = book)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~book, ncol = 2, scales = "free_x")
+```
+
+## 3. Comparing the Three Dictionaries
+```{r}
+pride_prejudice <- tidy_books %>% 
+  filter(book == "Pride & Prejudice")
+
+pride_prejudice
+
+afinn <- pride_prejudice %>% 
+  inner_join(get_sentiments("afinn")) %>% 
+  group_by(index = linenumber %/% 80) %>% 
+  summarise(sentiment = sum(value)) %>% 
+  mutate(method = "AFINN")
+
+bing_and_nrc <- bind_rows(pride_prejudice %>% 
+                            inner_join(get_sentiments("bing")) %>%
+                            mutate(method = "Bing et al."),
+                          pride_prejudice %>% 
+                            inner_join(get_sentiments("nrc") %>% 
+                                         filter(sentiment %in% c("positive", 
+                                                                 "negative"))) %>%
+                            mutate(method = "NRC")) %>%
+  count(method, index = linenumber %/% 80, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+bind_rows(afinn, 
+          bing_and_nrc) %>%
+  ggplot(aes(index, sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+
+get_sentiments("nrc") %>% 
+     filter(sentiment %in% c("positive", 
+                             "negative")) %>% 
+  count(sentiment)
+
+get_sentiments("bing") %>% 
+  count(sentiment)
+```
+
+## 4. Most Common Positive & Negative Words
+```{r}
+bing_word_counts <- tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+bing_word_counts
+
+bing_word_counts %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment",
+       x = NULL) +
+  coord_flip()
+
+custom_stop_words <- bind_rows(tibble(word = c("miss"), 
+                                          lexicon = c("custom")), 
+                               stop_words)
+
+custom_stop_words
+```
+
+## 5. Wordclouds
+```{r}
+library(wordcloud)
+
+tidy_books %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
+
+library(reshape2)
+
+tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("gray20", "gray80"),
+                   max.words = 100)
+```
+
+## 6. Looking Beyond Words
+```{r}
+PandP_sentences <- tibble(text = prideprejudice) %>% 
+  unnest_tokens(sentence, text, token = "sentences")
+
+PandP_sentences$sentence[2]
+
+austen_chapters <- austen_books() %>%
+  group_by(book) %>%
+  unnest_tokens(chapter, text, token = "regex", 
+                pattern = "Chapter|CHAPTER [\\dIVXLC]") %>%
+  ungroup()
+
+austen_chapters %>% 
+  group_by(book) %>% 
+  summarise(chapters = n())
+
+bingnegative <- get_sentiments("bing") %>% 
+  filter(sentiment == "negative")
+
+wordcounts <- tidy_books %>%
+  group_by(book, chapter) %>%
+  summarize(words = n())
+
+tidy_books %>%
+  semi_join(bingnegative) %>%
+  group_by(book, chapter) %>%
+  summarize(negativewords = n()) %>%
+  left_join(wordcounts, by = c("book", "chapter")) %>%
+  mutate(ratio = negativewords/words) %>%
+  filter(chapter != 0) %>%
+  top_n(1) %>%
+  ungroup()
+```
+
+## 7. My Extension
+For this section, I analyzed *The Iliad* using three different sentiment lexicons: SentiWordNet^2^, Hu Liu^3^, and SlangSD^4^.
+```{r}
+# open libraries
+library(lexicon)
+library(readr)
+
+# open four lexicons: SenticNet, SentiWordNet, Hu Liu, and SlangSD
+sentiword <- hash_sentiment_sentiword
+names(sentiword) <- c("word","score")
+
+huliu <- hash_sentiment_huliu
+names(huliu) <- c("word","score")
+
+slangsd <- hash_sentiment_slangsd
+names(slangsd) <- c("word","score")
+
+# open The Ilad text file and tidy it up with tidytext
+iliad <- tibble(line = 1:length(read_lines("TheIliad.txt")),
+                    text = c(read_lines("TheIliad.txt"))) %>%
+  unnest_tokens(word, text)
+
+# create sentiments based on each of the lexicons
+sentiword_sentiment <- iliad %>% 
+  inner_join(sentiword, by = "word") %>%
+  group_by(index = line %/% 80) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative"))
+
+huliu_sentiment <- iliad %>% 
+  inner_join(huliu, by = "word") %>%
+  group_by(index = line %/% 80) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative"))
+
+slangsd_sentiment <- iliad %>% 
+  inner_join(slangsd, by = "word") %>%
+  group_by(index = line %/% 80) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative"))
+
+# plot each lexicon sentiment
+ggplot(sentiword_sentiment, aes(index, sentiment, fill = overall)) +
+  geom_col(show.legend = FALSE) + labs(title = "SentiWordNet")
+
+ggplot(huliu_sentiment, aes(index, sentiment, fill = overall)) +
+  geom_col(show.legend = FALSE) + labs(title = "Hu Liu")
+
+ggplot(slangsd_sentiment, aes(index, sentiment, fill = overall)) +
+  geom_col(show.legend = FALSE) + labs(title = "slangSD")
+```
+
+After looking at the sentiment of *The Iliad* using four different sentiment lexicons, I found it incredible how different the lexicons rated the same text. A text such as *The Iliad* should certainly come out as negative, but it was scired as neutral (*Hu Liu* and *SentiWordNet*) and negative (*slangSD*) depending on the sentiment lexicon used.  
+
+I decided to remove stop words from the sentiments to see what impact those might be having.
+```{r}
+# remove stop words from each sentiment
+sentiword_sentiment_go <- iliad %>% 
+  inner_join(sentiword, by = "word") %>%
+  anti_join(stop_words, by = "word") %>%
+  group_by(index = line %/% 80) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative"))
+
+huliu_sentiment_go <- iliad %>% 
+  inner_join(huliu, by = "word") %>%
+  anti_join(stop_words, by = "word") %>%
+  group_by(index = line %/% 80) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative"))
+
+slangsd_sentiment_go <- iliad %>% 
+  inner_join(slangsd, by = "word") %>%
+  anti_join(stop_words, by = "word") %>%
+  group_by(index = line %/% 80) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative"))
+
+# plot each lexicon sentiment
+ggplot(sentiword_sentiment_go, aes(index, sentiment, fill = overall)) +
+  geom_col(show.legend = FALSE) + labs(title = "SentiWordNet - no stop words")
+
+ggplot(huliu_sentiment_go, aes(index, sentiment, fill = overall)) +
+  geom_col(show.legend = FALSE) + labs(title = "Hu Liu - no stop words")
+
+ggplot(slangsd_sentiment_go, aes(index, sentiment, fill = overall)) +
+  geom_col(show.legend = FALSE) + labs(title = "slangSD - no stop words")
+```
+
+All of these plots made sense for a story such as *The Iliad*, but I was curious now about which words were the largest contributors to the overall sentiment of the story.
+```{r}
+iliad_words <- iliad %>%
+  count(word, sort = TRUE) %>%
+  anti_join(stop_words, by = "word") %>%
+  filter(n > 250)
+
+ggplot(iliad_words, aes(x= reorder(word, n), y= n)) + geom_bar(stat = "identity", show.legend = FALSE) + coord_flip()
+
+sentiword_words <- iliad %>% 
+  inner_join(sentiword, by = "word") %>%
+  anti_join(stop_words, by = "word") %>%
+  group_by(word) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative")) %>%
+  filter(abs(sentiment) > 50)
+
+huliu_words <- iliad %>% 
+  inner_join(huliu, by = "word") %>%
+  group_by(word) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative")) %>%
+  filter(abs(sentiment) > 150)
+
+slangsd_words <- iliad %>% 
+  inner_join(slangsd, by = "word") %>%
+  anti_join(stop_words, by = "word") %>%
+  group_by(word) %>% 
+  summarise(sentiment = sum(score)) %>%
+  mutate(overall = ifelse(sentiment > 0, "Positive", "Negative")) %>%
+  filter(abs(sentiment) > 50)
+
+ggplot(sentiword_words, aes(x= reorder(word, -abs(sentiment)), y= sentiment, fill = overall)) + geom_bar(stat = "identity", show.legend = FALSE) + labs(title = "SentiWordNet", x = "Word", y = "Impact")
+
+ggplot(huliu_words, aes(x= reorder(word, -abs(sentiment)), y= sentiment, fill = overall)) + geom_bar(stat = "identity", show.legend = FALSE) + labs(title = "Hu Liu", x = "Word", y = "Impact")
+
+ggplot(slangsd_words, aes(x= reorder(word, -abs(sentiment)), y= sentiment, fill = overall)) + geom_bar(stat = "identity", show.legend = FALSE) + labs(title = "slangSD", x = "Word", y = "Impact")
+
+mean(sentiword_sentiment_go$sentiment) - mean(sentiword_sentiment$sentiment)
+mean(huliu_sentiment_go$sentiment) - mean(huliu_sentiment$sentiment)
+mean(slangsd_sentiment_go$sentiment) - mean(slangsd_sentiment$sentiment)
+```
+
+# Conclusion
+After looking at the sentiment of *The Iliad* using three different sentiment lexicons, both with and without stop words, I find it incredible how different these lexicons are. Some lexicons (*slangSD*) swayed based on stop words, while others (*SentiWordNet*) had minimal change when stop words were removed.
+
+After looking at the most impactful words from each sentiment lexicon, I believe the *Hu Liu* lexicon is the most approriate for this text. The most impactful words are meaningful even before stop words are removed and the overall sentiment outcome looks similar to what I would expect.
+
+#### **Citations**
+1. Silge, Julia, and David Robinson. “Text Mining with R.” *2 Sentiment Analysis with Tidy Data*, 7 Mar. 2020, www.tidytextmining.com/sentiment.html.  
+2. Baccianella S., Esuli, A. and Sebastiani, F. (2010). SentiWordNet 3.0: An Enhanced Lexical Resource for Sentiment Analysis and Opinion Mining. International Conference on Language Resources and Evaluation.  
+3. Hu, M., & Liu, B. (2004). Mining and summarizing customer reviews. Proceedings of the ACM
+SIGKDD International Conference on Knowledge Discovery & Data Mining (KDD-2004). Seattle,
+Washington.
+Hu, M., & Liu, B. (2004). Mining opinion features in customer reviews. National Conference on
+Artificial Intelligence.
+4. Wu, L., Morstatter, F., and Liu, H. (2016). SlangSD: Building and using a sentiment dictionary of
+slang words for short-text sentiment classification. CoRR. abs/1168.1058. 1-15.
