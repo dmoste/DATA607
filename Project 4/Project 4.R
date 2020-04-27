@@ -1,5 +1,6 @@
 library(tm)
 library(tidytext)
+library(ranger)
 
 ham_corpus <- VCorpus(DirSource(directory = "./easy_ham/"))
 tidy_ham <- tidy(ham_corpus)
@@ -24,4 +25,6 @@ holdout_data <- anti_join(df, training_data, by = "index")
 ############################################################################
 rf <- ranger(spam ~ ., data = training_data, write.forest = TRUE)
 pred <- predict(rf, data = holdout_data)
-table(holdout_data$spam, predictions(pred))
+
+rounded_pred <- round(predictions(pred))
+table(holdout_data$spam, rounded_pred)
