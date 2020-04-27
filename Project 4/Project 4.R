@@ -17,9 +17,8 @@ spam_text <- tidy_spam %>%
 df <- rbind(ham_text, spam_text) %>%
   filter(id != "cmds") %>%
   select(-author, -datetimestamp, -description, -heading, -language, -origin, -id)
-#df$index <- 1:nrow(df)
 
-sample_size = floor(0.5*nrow(df))
+sample_size = floor(0.75*nrow(df))
 picked = sample(seq_len(nrow(df)),size = sample_size)
 training = df[picked,]
 holdout = df[-picked,]
