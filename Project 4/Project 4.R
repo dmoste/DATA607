@@ -16,15 +16,17 @@ spam_text <- tidy_spam %>%
 
 df <- rbind(ham_text, spam_text) %>%
   filter(id != "cmds") %>%
-  select(-author, -datetimestamp, -description, -heading, -language, -origin)
-df$index <- 1:nrow(df)
+  select(-author, -datetimestamp, -description, -heading, -language, -origin, -id)
+#df$index <- 1:nrow(df)
 
-training_data <- sample_frac(df, 0.75, replace = FALSE)
-holdout_data <- anti_join(df, training_data, by = "index")
+sample_size = floor(0.5*nrow(df))
+picked = sample(seq_len(nrow(df)),size = sample_size)
+training = df[picked,]
+holdout = df[-picked,]
 
 ############################################################################
-rf <- ranger(spam ~ ., data = training_data, write.forest = TRUE)
-pred <- predict(rf, data = holdout_data)
+rf <- ranger(spam ~ ., data = training, write.forest = TRUE)
+pred <- predict(rf, data = holdout)
 
 rounded_pred <- round(predictions(pred))
-table(holdout_data$spam, rounded_pred)
+table(holdout$spam, rounded_pred)
