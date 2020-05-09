@@ -3,8 +3,8 @@ library(tidyverse)
 library(ranger)
 library(missRanger)
 library(data.table)
-library(abind)
 library(mongolite)
+library(keyring)
 
 set.seed(52638)
 
@@ -28,8 +28,14 @@ df <- read.csv(url, header = TRUE) %>%
   mutate(College = ifelse(grepl("U$", Code) | Code == "HBS11UA", "Y", "N")) %>%
   tbl_df()
 
-my_collection <- mongo(collection = "attendance", db = "final")
-attendance <- my_collection$find('{}')
+password <- key_get("MongoDB","dmoste")
+mongo_url = str_c('mongodb+srv://dmoste:',
+                  password,
+                  '@cuny-msds-wnup9.gcp.mongodb.net/test')
+mongo_data <- mongo(collection = "Attendance", db = "DATA607_Final", 
+                url = mongo_url, 
+                verbose = TRUE)
+attendance <- mongo_data$find('{}')
 
 # StudentID is only listed for the last instance of each student. This section of
 # code pulls up that ID number through all the rows of a student. I then converted

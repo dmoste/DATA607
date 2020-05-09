@@ -400,9 +400,9 @@ library(missRanger)</code></pre>
 <pre><code>## The following object is masked from &#39;package:purrr&#39;:
 ## 
 ##     transpose</code></pre>
-<pre class="r"><code>library(abind)
-library(mongolite)</code></pre>
+<pre class="r"><code>library(mongolite)</code></pre>
 <pre><code>## Warning: package &#39;mongolite&#39; was built under R version 3.6.3</code></pre>
+<pre class="r"><code>library(keyring)</code></pre>
 <p>The first dataset was loaded in at the same time as some initial cleaning was performed. The initial cleaning here just separated course code data into useable columns and removed some unneeded columns. I also created a column to indicate if a course was a college course or not (many of the students at my school take college courses).</p>
 <pre class="r"><code>set.seed(52638)
 
@@ -430,8 +430,17 @@ df &lt;- read.csv(url, header = TRUE) %&gt;%
 <pre><code>## Warning: Expected 2 pieces. Missing pieces filled with `NA` in 22556 rows [1, 4,
 ## 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, ...].</code></pre>
 <p>The second dataset was attendance data loaded in from MongoDB (my second data source). No cleaning was required for this set.</p>
-<pre class="r"><code>my_collection &lt;- mongo(collection = &quot;attendance&quot;, db = &quot;final&quot;)
-attendance &lt;- my_collection$find(&#39;{}&#39;)</code></pre>
+<pre class="r"><code>password &lt;- key_get(&quot;MongoDB&quot;,&quot;dmoste&quot;)
+mongo_url = str_c(&#39;mongodb+srv://dmoste:&#39;,
+                  password,
+                  &#39;@cuny-msds-wnup9.gcp.mongodb.net/test&#39;)
+mongo_data &lt;- mongo(collection = &quot;Attendance&quot;, db = &quot;DATA607_Final&quot;, 
+                url = mongo_url, 
+                verbose = TRUE)
+attendance &lt;- mongo_data$find(&#39;{}&#39;)</code></pre>
+<pre><code>## 
+ Found 516 records...
+ Imported 516 records. Simplifying into dataframe...</code></pre>
 <p>Each row of the data is data on a single course taken by a student, where the rows are grouped by student. Unfortunately, StudentID is only listed in the last row of data for each student. I used nafill and next observation carried backwards to pull the StudentIDs up into each column for the students. I also created names that could be used as columns for the Code values so that each code could be used as feature by my predictor.</p>
 <pre class="r"><code>df$StudentID &lt;- nafill(df$StudentID, type = &quot;nocb&quot;)
 df$Code &lt;- make.names(df$Code, unique = FALSE, allow_ = FALSE)</code></pre>

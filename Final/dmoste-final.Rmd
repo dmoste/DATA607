@@ -24,8 +24,8 @@ library(tidyverse)
 library(ranger)
 library(missRanger)
 library(data.table)
-library(abind)
 library(mongolite)
+library(keyring)
 ```
 
 The first dataset was loaded in at the same time as some initial cleaning was performed. The initial cleaning here just separated course code data into useable columns and removed some unneeded columns. I also created a column to indicate if a course was a college course or not (many of the students at my school take college courses).
@@ -54,8 +54,14 @@ df <- read.csv(url, header = TRUE) %>%
 
 The second dataset was attendance data loaded in from MongoDB (my second data source). No cleaning was required for this set.
 ```{r}
-my_collection <- mongo(collection = "attendance", db = "final")
-attendance <- my_collection$find('{}')
+password <- key_get("MongoDB","dmoste")
+mongo_url = str_c('mongodb+srv://dmoste:',
+                  password,
+                  '@cuny-msds-wnup9.gcp.mongodb.net/test')
+mongo_data <- mongo(collection = "Attendance", db = "DATA607_Final", 
+                url = mongo_url, 
+                verbose = TRUE)
+attendance <- mongo_data$find('{}')
 ```
 
 Each row of the data is data on a single course taken by a student, where the rows are grouped by student. Unfortunately, StudentID is only listed in the last row of data for each student. I used nafill and next observation carried backwards to pull the StudentIDs up into each column for the students. I also created names that could be used as columns for the Code values so that each code could be used as feature by my predictor.
