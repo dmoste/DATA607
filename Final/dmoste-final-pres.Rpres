@@ -1,0 +1,65 @@
+DATA 607 Final Presentation
+========================================================
+author: David Moste
+date: 05.09.20
+autosize: true
+
+Goals
+========================================================
+- I wanted to build a predictor that could predict student scores in courses based on their transcript.
+- Predicting college course scores would be the most important aspect of this.
+- Predicting high school scores could be fun, but ultimately would be of less value.
+
+My Data
+========================================================
+1. Student transcripts in the form of a csv
+2. Student attendance data, gathered from MongoDB
+
+Challenges
+========================================================
+Where to start?!  
+
+1. Filling in student ids
+2. Summarizing each student in a single row
+3. Missing data
+4. Ranger can take a long time...
+
+Solutions
+========================================================
+```{r, eval = FALSE}
+# Solution 1
+df$StudentID <- nafill(df$StudentID, type = "nocb")
+
+# Solution 2
+df <- df %>%
+  pivot_wider(names_from  = Code,
+              values_from = NumericEquivalent) %>%
+  group_by(StudentID) %>%
+  left_join(attendance, by = "StudentID") %>%
+  summarise_if(is.numeric, max, na.rm = TRUE)
+
+# Solution 3
+df <- missRanger(df, num.trees = 100, maxiter = 5)
+```
+
+Solutions (cont)
+========================================================
+To deal with how long Ranger was taking, I filtered out columns that were likely to be useless in the prediction method. These were any course where fewer than 5% of students had taken the class.
+
+Results
+========================================================
+The equation created by my linear model:  
+
+$\widehat{score}=-12.9+1.166\times prediction$  
+
+$R^2=0.83$  
+
+A 95% confidence interval for this model:  
+
+$CI=\left(1.05,1.29\right)$  
+
+Conclusion
+========================================================
+I was able to create a decent model for a course where lots of students have already taken the course, such as geometry. However, predicting college courses, which generally have a much lower enrollment number, ended with less success.  
+
+I'd love to keep improving this model by adding more data over the next few years so that college courses can be better represented.
