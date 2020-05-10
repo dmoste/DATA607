@@ -29,9 +29,8 @@ df <- read.csv(url, header = TRUE) %>%
   mutate(College = ifelse(grepl("U$", Code) | Code == "HBS11UA", "Y", "N")) %>%
   tbl_df()
 
-password <- key_get("MongoDB","dmoste")
 mongo_url = str_c('mongodb+srv://dmoste:',
-                  password,
+                  key_get("MongoDB","dmoste"),
                   '@cuny-msds-wnup9.gcp.mongodb.net/test')
 mongo_data <- mongo(collection = "Attendance", db = "DATA607_Final", 
                 url = mongo_url, 
@@ -61,7 +60,7 @@ df <- df %>%
 df[df == -Inf] <- NA
 df <- df[, which(colMeans(!is.na(df)) > 0.05)]
 df <- df %>%
-  mutate(Imputed = ifelse(is.na(df[[course]]), 1, 0)) %>%
+  mutate(Imputed = ifelse(is.na(df[course]), 1, 0)) %>%
   select(-TermCD, -SchoolYear)
 
 # Impute missing data
@@ -119,9 +118,9 @@ abline(m_all)
 pf <-data.frame(holdout, pred_ranger[["predictions"]])
 pf$Imputed <- as.factor(pf$Imputed)
 ggplot(pf,
-       aes(x     = pred_ranger...predictions...,
-           y     = MGS22,
-           color = Imputed)) + geom_point()
+       aes_string(x     = "pred_ranger...predictions...",
+                  y     = course,
+                  color = "Imputed")) + geom_point()
 
 # Remove imputed data from the predictions
 pf <- filter(pf, Imputed == 0)
