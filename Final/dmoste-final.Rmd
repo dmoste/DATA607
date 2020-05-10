@@ -31,6 +31,7 @@ library(keyring)
 The first dataset was loaded in at the same time as some initial cleaning was performed. The initial cleaning here just separated course code data into useable columns and removed some unneeded columns. I also created a column to indicate if a course was a college course or not (many of the students at my school take college courses).
 ```{r}
 set.seed(52638)
+course <- "MGS22"
 
 url <- "https://github.com/dmoste/DATA607/blob/master/Final/all_transcripts.csv?raw=true"
 df <- read.csv(url, header = TRUE) %>%
@@ -87,7 +88,7 @@ Next, I filled all the -Inf created by my summarise_if statement with NAs. This 
 df[df == -Inf] <- NA
 df <- df[, which(colMeans(!is.na(df)) > 0.05)]
 df <- df %>%
-  mutate(Imputed = ifelse(is.na(df$MGS22), 1, 0)) %>%
+  mutate(Imputed = ifelse(is.na(df[[course]]), 1, 0)) %>%
   select(-TermCD, -SchoolYear)
 ```
 
@@ -146,14 +147,14 @@ importance %>%
 Now I wanted to run my predictor on my holdout dataset and plot the results.
 ```{r}
 pred_ranger <- predict(optimal_ranger, holdout)
-plot(pred_ranger[["predictions"]], holdout$MGS22)
+plot(pred_ranger[["predictions"]], holdout[[course]])
 ```
 
 Then I created a linear model to see how good my fit was.
 ```{r}
-m_all <- lm(holdout$MGS22 ~ pred_ranger[["predictions"]])
+m_all <- lm(holdout[[course]] ~ pred_ranger[["predictions"]])
 summary(m_all)
-plot(pred_ranger[["predictions"]], holdout$MGS22)
+plot(pred_ranger[["predictions"]], holdout[[course]])
 abline(m_all)
 ```
 
@@ -187,8 +188,8 @@ ggplot(pf,
 
 pf <- filter(pf, Imputed == 0)
 
-m_real <- lm(pf$MGS22 ~ pf$pred_ranger...predictions...)
-plot(pf$pred_ranger...predictions..., pf$MGS22)
+m_real <- lm(pf[[course]] ~ pf$pred_ranger...predictions...)
+plot(pf$pred_ranger...predictions..., pf[[course]])
 abline(m_real)
 summary(m_real)
 ```

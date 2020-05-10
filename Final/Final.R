@@ -7,6 +7,7 @@ library(mongolite)
 library(keyring)
 
 set.seed(52638)
+course <- "MGS22"
 
 # read the data in and do a bit of cleaning
 url <- "https://github.com/dmoste/DATA607/blob/master/Final/all_transcripts.csv?raw=true"
@@ -60,7 +61,7 @@ df <- df %>%
 df[df == -Inf] <- NA
 df <- df[, which(colMeans(!is.na(df)) > 0.05)]
 df <- df %>%
-  mutate(Imputed = ifelse(is.na(df$MGS22), 1, 0)) %>%
+  mutate(Imputed = ifelse(is.na(df[[course]]), 1, 0)) %>%
   select(-TermCD, -SchoolYear)
 
 # Impute missing data
@@ -106,10 +107,10 @@ importance %>%
 
 # Run the predictor on the holdout data and plot the results
 pred_ranger <- predict(optimal_ranger, holdout)
-plot(pred_ranger[["predictions"]], holdout$MGS22)
+plot(pred_ranger[["predictions"]], holdout[[course]])
 
 # Use some statistics knowledge to see how well the model fits the data
-m_all <- lm(holdout$MGS22 ~ pred_ranger[["predictions"]])
+m_all <- lm(holdout[[course]] ~ pred_ranger[["predictions"]])
 summary(m_all)
 abline(m_all)
 
@@ -126,10 +127,10 @@ ggplot(pf,
 pf <- filter(pf, Imputed == 0)
 
 # Use some statistics knowledge to see how well the model fits the real data
-m_real <- lm(pf$MGS22 ~ pf$pred_ranger...predictions...)
-plot(pf$pred_ranger...predictions..., pf$MGS22)
+m_real <- lm(pf[[course]] ~ pf$pred_ranger...predictions...)
+plot(pf$pred_ranger...predictions..., pf[[course]])
 abline(m_real)
 summary(m_real)
 
 # Save my amazing model!
-saveRDS(optimal_ranger, "big_model.rds")
+saveRDS(optimal_ranger, "mgss22_model.rds")
